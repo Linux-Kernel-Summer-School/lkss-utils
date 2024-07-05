@@ -1,0 +1,25 @@
+uuu_version 1.0.1
+ 
+SDP: boot -f >/home/student/work/images/flash.bin
+SDPV: delay 1000
+SDPV: write -f >/home/student/work/images/flash.bin -skipspl
+SDPV: jump
+
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev}
+FB: flash -raw2sparse all >/home/student/work/images/rootfs.ext2
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+ 
+FB: ucmd setenv bootargs console=ttymxc0,115200,115200 clk_ignore_unused root=/dev/mmcblk0
+FB: ucmd setenv image Image
+ 
+FB: ucmd setenv fastboot_buffer ${loadaddr}
+FB: download -f >/home/student/work/nss-linux/arch/arm64/boot/Image
+FB: ucmd setenv fastboot_buffer ${fdt_addr}
+ 
+FB: download -f >/home/student/work/nss-linux/arch/arm64/boot/dts/freescale/imx8mq-pico-pi.dtb
+FB: acmd booti ${loadaddr} - ${fdt_addr}
+ 
+FB: done
