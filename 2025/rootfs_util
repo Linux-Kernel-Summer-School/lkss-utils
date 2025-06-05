@@ -1,0 +1,89 @@
+#!/bin/python3
+
+import argparse
+import subprocess
+import os
+import shutil
+
+def mount_rootfs(rootfs, where):
+	# first off, create target directory if it doesn't already exist
+	os.makedirs(where, exist_ok=True)
+
+	# ... then do the mount	
+	cmd = ["sudo", "mount", rootfs, where]
+
+	print(f"Mounting {rootfs} at {where}")
+
+	proc = subprocess.run(cmd)
+
+	if proc.returncode != 0:
+		print("Failed to mount rootfs")
+		return -1
+
+	return 0
+
+def unmount_rootfs(where, cleanup=False):
+	cmd = ["sudo", "umount", where]
+
+	print(f"Attempting to unmount {where}")
+
+	proc = subprocess.run(cmd)
+
+	if proc.returncode != 0:
+		print("Failed to unmount rootfs")
+		return -1
+
+	if cleanup:
+		subprocess.run(["sudo", "rm", "-r", where])
+
+	return 0
+
+def copy_to_rootfs(rootfs, file, where):
+	mnt_dir = "_tmp"
+
+	# firt, mount the rootfs
+	if mount_rootfs(rootfs, mnt_dir) < 0:
+		return -1
+
+	print(f"Copying {file} to rootfs")
+
+	# then copy the file/folder
+	cmd = ["sudo", "cp", "-r", file, mnt_dir + where]
+	
+	proc = subprocess.run(cmd)
+	if proc.returncode != 0:
+		print("Failed to copy file")
+		unmount_rootfs(mnt_dir, True)
+		return -1
+
+	# and finally unmount the rootfs
+	if unmount_rootfs(mnt_dir, True) < 0:
+		return -1
+
+	return 0
+
+parser = argparse.ArgumentParser(description="LKSS rootfs manipulation tool")
+subparser = parser.add_subparsers(dest="command", title="commands", help="command to execute")
+
+mnt_parser = subparser.add_parser("mount", help="mount the rootfs")
+mnt_parser.add_argument("rootfs", type=str, help="path to rootfs (ext2)")
+mnt_parser.add_argument("dst", type=str, help="destination folder")
+
+umnt_parser = subparser.add_parser("unmount", help="unmount the rootfs")
+umnt_parser.add_argument("-d", "--delete", action="store_true", help="delete the directory after unmounting")
+umnt_parser.add_argument("dst", type=str, help="mount folder")
+
+cpy_parser = subparser.add_parser("copy", help="copy file to rootfs")
+cpy_parser.add_argument("rootfs", type=str, help="path to rootfs (ext2)")
+cpy_parser.add_argument("file", type=str, help="file to copy")
+cpy_parser.add_argument("where", type=str, help="where to copy the file")
+
+args = parser.parse_args()
+
+match args.command:
+	case "mount":
+		mount_rootfs(args.rootfs, args.dst)
+	case "unmount":
+		unmount_rootfs(args.dst, args.delete)
+	case "copy":
+		copy_to_rootfs(args.rootfs, args.file, args.where)

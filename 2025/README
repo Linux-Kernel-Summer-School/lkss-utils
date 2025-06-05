@@ -23,3 +23,31 @@ as follows:
 
 * this step might not be necessary but make sure you set the boot
 pins to USB.
+
+2) Working with the rootfs
+
+* during this year's edition you'll be working with a root filesystem,
+which (most likely) you'll have to modify for various purposes
+(e.g. copy kernel modules, copy your custom files, etc.).
+
+* to do so, you can use "rootfs_util". Below are some useful commands:
+
+	a) Mount the rootfs
+
+	./rootfs_util mount [rootfs_path] [mount_point]
+
+	b) Unmount the rootfs
+
+	./rootfs_util unmount [mount_point]
+
+	c) Unmount the rootfs and delete the mount point
+
+	./rootfs_util unmount -d [mount_point]
+
+	d) Copy file/directory to rootfs
+
+	./rootfs_util copy [rootfs_path] [file_to_copy] [where_to_copy]
+
+* when in doubt use:
+
+	./rootfs_util -h
