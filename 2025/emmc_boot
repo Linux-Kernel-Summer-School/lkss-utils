@@ -1,0 +1,34 @@
+uuu_version 1.0.1
+
+# @_flash.bin => boot container
+# @_rootfs => Rootfs (EXT2)
+# @_Image => Linux Kernel Image
+# @_dtb => Linux Kernel DTB
+
+# boot u-boot SPL and then u-boot proper
+SDPS: boot -f _flash.bin
+SDPV: delay 1000
+SDPV: write -f _flash.bin -skipspl
+SDPV: jump
+
+# write rootfs to eMMC
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev}
+FB: flash -raw2sparse all _rootfs
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+
+# write Image to RAM
+FB: ucmd setenv fastboot_buffer ${loadaddr}
+FB: download -f _Image
+FB: ucmd setenv fastboot_buffer ${fdt_addr}
+
+# write DTB to RAM
+FB: download -f _dtb
+
+# overwrite bootargs
+FB: ucmd setenv bootargs ${bootargs} root=/dev/mmcblk0
+FB: acmd booti ${loadaddr} - ${fdt_addr}
+
+FB: done
