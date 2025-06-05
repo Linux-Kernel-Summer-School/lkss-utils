@@ -22,9 +22,9 @@ FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
 # write Image to RAM
 FB: ucmd setenv fastboot_buffer ${loadaddr}
 FB: download -f _Image
-FB: ucmd setenv fastboot_buffer ${fdt_addr}
 
 # write DTB to RAM
+FB: ucmd setenv fastboot_buffer ${fdt_addr}
 FB: download -f _dtb
 
 # overwrite bootargs

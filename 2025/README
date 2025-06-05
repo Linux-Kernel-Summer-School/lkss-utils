@@ -1,0 +1,25 @@
+1) Booting the IMX93-FDRM board from eMMC
+
+* to boot the board from eMMC one can use the "emmc_boot" script
+as follows:
+
+	uuu -b emmc_boot <flash.bin> <rootfs.ext2> <Image> <dtb>
+
+, where:
+	flash.bin - boot container
+	rootfs.ext2 - rootfs to use in EXT2 format
+	Image - kernel image
+	dtb - kernel DTB
+
+* the "emmc_boot" script takes the following steps:
+
+	1) Boot u-boot SPL
+	2) Boot u-boot proper
+	3) Write rootfs.ext2 to eMMC
+	4) Write kernel Image to fastboot buffer
+	5) Write DTB to fastboot buffer
+	6) Append path to rootfs to kernel boot arguments
+	7) Boot from the address at which the kernel image resides
+
+* this step might not be necessary but make sure you set the boot
+pins to USB.
