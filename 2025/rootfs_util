@@ -62,6 +62,27 @@ def copy_to_rootfs(rootfs, file, where):
 
 	return 0
 
+def install_kernel_modules(rootfs, kernel):
+	rootfs_mount_dir = os.getcwd() + "/" + "_tmp"
+
+	# rootfs will be mounted under ./_tmp
+	if mount_rootfs(rootfs, rootfs_mount_dir) != 0:
+		return -1
+
+	# install the modules
+	cmd = ["sudo", f"INSTALL_MOD_PATH={rootfs_mount_dir}", "make", "modules_install"]
+
+	proc = subprocess.run(cmd, cwd=kernel)
+	if proc.returncode != 0:
+		print("Failed to install kernel modules!")
+		unmount_rootfs(rootfs_mount_dir, True)
+		return -1
+
+	# done, unmount
+	unmount_rootfs(rootfs_mount_dir, True)
+
+	return 0
+
 parser = argparse.ArgumentParser(description="LKSS rootfs manipulation tool")
 subparser = parser.add_subparsers(dest="command", title="commands", help="command to execute")
 
@@ -78,6 +99,10 @@ cpy_parser.add_argument("rootfs", type=str, help="path to rootfs (ext2)")
 cpy_parser.add_argument("file", type=str, help="file to copy")
 cpy_parser.add_argument("where", type=str, help="where to copy the file")
 
+install_parser = subparser.add_parser("modules_install", help="install kernel modules to rootfs")
+install_parser.add_argument("rootfs", type=str, help="path to rootfs (ext2)")
+install_parser.add_argument("kernel", type=str, help="path to kernel root directory")
+
 args = parser.parse_args()
 
 match args.command:
@@ -87,3 +112,5 @@ match args.command:
 		unmount_rootfs(args.dst, args.delete)
 	case "copy":
 		copy_to_rootfs(args.rootfs, args.file, args.where)
+	case "modules_install":
+		install_kernel_modules(args.rootfs, args.kernel)
