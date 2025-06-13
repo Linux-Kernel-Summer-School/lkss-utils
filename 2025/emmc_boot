@@ -28,7 +28,7 @@ FB: ucmd setenv fastboot_buffer ${fdt_addr}
 FB: download -f _dtb
 
 # overwrite bootargs
-FB: ucmd setenv bootargs ${bootargs} root=/dev/mmcblk0
+FB: ucmd setenv bootargs ${bootargs} root=/dev/mmcblk0 rootwait
 FB: acmd booti ${loadaddr} - ${fdt_addr}
 
 FB: done
