@@ -56,6 +56,8 @@ pad_to_4096 "_Image"
 pad_to_4096 "_dtb"
 pad_to_4096 "_rootfs"
 
+# Add cwd to $PATH to be able to use the local uuu
+PATH=$PATH:$(pwd)
 # Run uuu
 echo "Running uuu..."
 uuu -b emmc_boot "$FLASH_BIN" "_rootfs" "_Image" "_dtb"
